@@ -135,17 +135,11 @@ public class FlutterPDFView implements PlatformView, MethodCallHandler {
         for (String key : settings.keySet()) {
             switch (key) {
                 case "enableSwipe":
-                    pdfView.setSwipeEnabled(getBoolean(settings, key));
+                    pdfView.enableSwipe(getBoolean(settings, key));
                     break;
                 case "nightMode":
-                    pdfView.setNightMode(getBoolean(settings, key));
-                    break;
                 case "pageFling":
-                    pdfView.setPageFling(getBoolean(settings, key));
-                    break;
                 case "pageSnap":
-                    pdfView.setPageSnap(getBoolean(settings, key));
-                    break;
                 case "preventLinkNavigation":
                     break;
                 default:
