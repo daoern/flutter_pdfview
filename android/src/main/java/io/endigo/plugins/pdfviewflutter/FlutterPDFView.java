@@ -19,24 +19,17 @@ import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.PDFView.Configurator;
 import com.github.barteksc.pdfviewer.listener.*;
 import com.github.barteksc.pdfviewer.util.Constants;
-import com.github.barteksc.pdfviewer.util.FitPolicy;
-
-import com.github.barteksc.pdfviewer.link.LinkHandler;
 
 public class FlutterPDFView implements PlatformView, MethodCallHandler {
     private final PDFView pdfView;
     private final MethodChannel methodChannel;
-    private final LinkHandler linkHandler;
 
     @SuppressWarnings("unchecked")
     FlutterPDFView(Context context, BinaryMessenger messenger, int id, Map<String, Object> params) {
         pdfView = new PDFView(context, null);
-        final boolean preventLinkNavigation = getBoolean(params, "preventLinkNavigation");
 
         methodChannel = new MethodChannel(messenger, "plugins.endigo.io/pdfview_" + id);
         methodChannel.setMethodCallHandler(this);
-
-        linkHandler = new PDFLinkHandler(context, pdfView, methodChannel, preventLinkNavigation);
 
         Configurator config = null;
         if (params.get("filePath") != null) {
@@ -51,17 +44,10 @@ public class FlutterPDFView implements PlatformView, MethodCallHandler {
         if (config != null) {
             config
                     .enableSwipe(getBoolean(params, "enableSwipe"))
-                    .swipeHorizontal(getBoolean(params, "swipeHorizontal"))
+                    .swipeVertical(!getBoolean(params, "swipeHorizontal"))
                     .password(getString(params, "password"))
-                    .nightMode(getBoolean(params, "nightMode"))
-                    .autoSpacing(getBoolean(params, "autoSpacing"))
-                    .pageFling(getBoolean(params, "pageFling"))
-                    .pageSnap(getBoolean(params, "pageSnap"))
-                    .pageFitPolicy(getFitPolicy(params))
+                    .showMinimap(false)
                     .enableAnnotationRendering(true)
-                    .linkHandler(linkHandler).
-                    enableAntialiasing(false)
-                    // .fitEachPage(getBoolean(params,"fitEachPage"))
                     .onPageChange(new OnPageChangeListener() {
                         @Override
                         public void onPageChanged(int page, int total) {
@@ -161,8 +147,6 @@ public class FlutterPDFView implements PlatformView, MethodCallHandler {
                     pdfView.setPageSnap(getBoolean(settings, key));
                     break;
                 case "preventLinkNavigation":
-                    final PDFLinkHandler plh = (PDFLinkHandler) this.linkHandler;
-                    plh.setPreventLinkNavigation(getBoolean(settings, key));
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown PDFView setting: " + key);
@@ -185,19 +169,6 @@ public class FlutterPDFView implements PlatformView, MethodCallHandler {
 
     int getInt(Map<String, Object> params, String key) {
         return params.containsKey(key) ? (int) params.get(key) : 0;
-    }
-
-    FitPolicy getFitPolicy(Map<String, Object> params) {
-        String fitPolicy = getString(params, "fitPolicy");
-        switch (fitPolicy) {
-            case "FitPolicy.WIDTH":
-                return FitPolicy.WIDTH;
-            case "FitPolicy.HEIGHT":
-                return FitPolicy.HEIGHT;
-            case "FitPolicy.BOTH":
-            default:
-                return FitPolicy.BOTH;
-        }
     }
 
     private Uri getURI(final String uri) {
